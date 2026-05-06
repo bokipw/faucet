@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BPW Faucet — Earn Free BPW Tokens</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --bg:#0a0a0f; --surface:#12121a; --surface2:#1a1a26;
+  --border:#2a2a3a; --text:#e8e8f0; --text-dim:#7a7a9a;
+  --red:#e63946; --red-dark:#c1121f; --gold:#ffd60a; --green:#50c878;
+  --blue:#4cc9f0;
+}
+body { font-family:'Rajdhani',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; overflow-x:hidden; position:relative; }
+body::before { content:''; position:fixed; inset:0; background-image:linear-gradient(rgba(76,201,240,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(76,201,240,0.03) 1px,transparent 1px); background-size:40px 40px; animation:gridMove 20s linear infinite; pointer-events:none; z-index:0; }
+@keyframes gridMove { 0%{transform:translateY(0)} 100%{transform:translateY(40px)} }
+.orb { position:fixed; border-radius:50%; filter:blur(100px); pointer-events:none; z-index:0; }
+.orb1 { width:500px; height:500px; background:rgba(76,201,240,0.06); top:-200px; right:-100px; animation:float1 10s ease-in-out infinite; }
+.orb2 { width:400px; height:400px; background:rgba(230,57,70,0.05); bottom:-100px; left:-100px; animation:float2 12s ease-in-out infinite; }
+@keyframes float1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-30px,30px)} }
+@keyframes float2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(20px,-20px)} }
+
+/* HEADER */
+.header { position:relative; z-index:10; display:flex; align-items:center; justify-content:space-between; padding:18px 32px; border-bottom:1px solid var(--border); background:rgba(10,10,15,0.9); backdrop-filter:blur(10px); flex-wrap:wrap; gap:12px; }
+.logo { font-family:'Orbitron',monospace; font-size:1.4rem; font-weight:900; letter-spacing:4px; background:linear-gradient(135deg,var(--blue),var(--gold)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; display:flex; align-items:center; gap:10px; text-decoration:none; }
+.logo-icon { font-size:1.6rem; }
+.nav { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.nav a { padding:7px 16px; border-radius:6px; font-family:'Orbitron',monospace; font-size:0.65rem; letter-spacing:2px; text-decoration:none; border:1px solid var(--border); color:var(--text-dim); transition:all 0.2s; }
+.nav a:hover { border-color:var(--blue); color:var(--blue); }
+
+/* MAIN */
+.main { position:relative; z-index:10; max-width:900px; margin:0 auto; padding:40px 20px; }
+
+/* HERO */
+.hero { text-align:center; margin-bottom:48px; animation:fadeDown 0.6s ease both; }
+.hero-badge { display:inline-block; background:rgba(76,201,240,0.1); border:1px solid rgba(76,201,240,0.3); color:var(--blue); font-family:'Orbitron',monospace; font-size:0.65rem; letter-spacing:3px; padding:5px 16px; border-radius:20px; margin-bottom:20px; }
+.hero-title { font-family:'Orbitron',monospace; font-size:2.8rem; font-weight:900; letter-spacing:4px; background:linear-gradient(135deg,var(--blue),var(--gold)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin-bottom:12px; line-height:1.1; }
+.hero-sub { font-size:1rem; color:var(--text-dim); letter-spacing:2px; margin-bottom:24px; }
+.hero-stats { display:flex; justify-content:center; gap:32px; flex-wrap:wrap; }
+.hstat { text-align:center; }
+.hstat-val { font-family:'Orbitron',monospace; font-size:1.4rem; font-weight:900; color:var(--gold); }
+.hstat-label { font-size:0.72rem; color:var(--text-dim); letter-spacing:1px; margin-top:2px; }
+
+/* AD BANNER TOP */
+.ad-top { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:32px; text-align:center; position:relative; overflow:hidden; }
+.ad-top::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,var(--blue),transparent); }
+.ad-label { font-family:'Orbitron',monospace; font-size:0.55rem; letter-spacing:2px; color:var(--text-dim); margin-bottom:8px; }
+
+/* FAUCET CARD */
+.faucet-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:40px; margin-bottom:32px; position:relative; overflow:hidden; animation:fadeUp 0.6s ease 0.2s both; }
+.faucet-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,var(--blue),var(--gold),transparent); }
+
+.faucet-title { font-family:'Orbitron',monospace; font-size:0.8rem; letter-spacing:3px; color:var(--text-dim); margin-bottom:24px; text-align:center; }
+
+/* LOGIN SECTION */
+#loginSection { text-align:center; }
+.ilabel { display:block; font-size:0.75rem; letter-spacing:2px; color:var(--text-dim); margin-bottom:8px; font-family:'Orbitron',monospace; text-align:left; }
+.iwrap { position:relative; margin-bottom:16px; }
+.iwrap::before { content:'@'; position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--blue); font-family:'Orbitron',monospace; }
+.inp { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:13px 14px 13px 36px; color:var(--text); font-family:'Rajdhani',sans-serif; font-size:1rem; outline:none; transition:border-color 0.2s; }
+.inp:focus { border-color:var(--blue); }
+.inp::placeholder { color:var(--text-dim); }
+.btn-login { width:100%; padding:14px; background:linear-gradient(135deg,#0a4a6e,var(--blue)); border:none; border-radius:8px; color:white; font-family:'Orbitron',monospace; font-size:0.8rem; font-weight:700; letter-spacing:3px; cursor:pointer; transition:all 0.2s; }
+.btn-login:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(76,201,240,0.4); }
+.btn-login:disabled { opacity:0.5; cursor:not-allowed; transform:none; box-shadow:none; }
+
+/* CLAIM SECTION */
+#claimSection { display:none; }
+.user-info { display:flex; align-items:center; gap:14px; margin-bottom:28px; padding-bottom:20px; border-bottom:1px solid var(--border); }
+.user-av { width:48px; height:48px; border-radius:50%; background:linear-gradient(135deg,var(--blue),var(--gold)); display:flex; align-items:center; justify-content:center; font-family:'Orbitron',monospace; font-size:1.1rem; font-weight:900; color:var(--bg); }
+.user-name { font-family:'Orbitron',monospace; font-size:1rem; color:var(--text); }
+.user-sub { font-size:0.75rem; color:var(--text-dim); letter-spacing:1px; margin-top:2px; }
+.logout-btn { margin-left:auto; background:none; border:1px solid var(--border); color:var(--text-dim); padding:6px 14px; border-radius:6px; font-family:'Orbitron',monospace; font-size:0.65rem; letter-spacing:1px; cursor:pointer; transition:all 0.2s; }
+.logout-btn:hover { border-color:var(--red); color:var(--red); }
+
+/* REWARD BOX */
+.reward-box { background:var(--surface2); border:1px solid rgba(76,201,240,0.2); border-radius:12px; padding:24px; text-align:center; margin-bottom:24px; position:relative; overflow:hidden; }
+.reward-box::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 50% 0%, rgba(76,201,240,0.06) 0%, transparent 70%); }
+.reward-label { font-size:0.75rem; color:var(--text-dim); letter-spacing:2px; text-transform:uppercase; margin-bottom:8px; font-family:'Orbitron',monospace; }
+.reward-amount { font-family:'Orbitron',monospace; font-size:2rem; font-weight:900; color:var(--gold); margin-bottom:4px; }
+.reward-token { font-size:0.8rem; color:var(--blue); letter-spacing:2px; }
+
+/* CLAIM BUTTON */
+.btn-claim { width:100%; padding:18px; background:linear-gradient(135deg,#0a4a6e,var(--blue)); border:none; border-radius:10px; color:white; font-family:'Orbitron',monospace; font-size:0.9rem; font-weight:900; letter-spacing:4px; cursor:pointer; transition:all 0.3s; position:relative; overflow:hidden; }
+.btn-claim::before { content:''; position:absolute; top:0; left:-100%; width:100%; height:100%; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent); transition:left 0.4s; }
+.btn-claim:hover::before { left:100%; }
+.btn-claim:hover { transform:translateY(-2px); box-shadow:0 8px 30px rgba(76,201,240,0.5); }
+.btn-claim:disabled { opacity:0.5; cursor:not-allowed; transform:none; box-shadow:none; }
+.btn-claim.claimed { background:linear-gradient(135deg,#1a3a1a,var(--green)); }
+
+/* COUNTDOWN */
+.countdown-wrap { text-align:center; margin-top:16px; }
+.countdown-label { font-size:0.75rem; color:var(--text-dim); letter-spacing:1px; margin-bottom:6px; }
+.countdown { font-family:'Orbitron',monospace; font-size:1.4rem; font-weight:900; color:var(--blue); letter-spacing:3px; }
+
+/* STATS */
+.my-stats { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:20px; }
+.mstat { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:14px; text-align:center; }
+.mstat-val { font-family:'Orbitron',monospace; font-size:1.1rem; font-weight:900; color:var(--gold); }
+.mstat-label { font-size:0.7rem; color:var(--text-dim); letter-spacing:1px; margin-top:4px; }
+
+/* STATUS MSG */
+.status { margin-top:14px; padding:10px 14px; border-radius:8px; font-size:0.85rem; display:none; text-align:center; }
+.status.err { display:block; background:rgba(230,57,70,0.1); border:1px solid rgba(230,57,70,0.3); color:#ff6b78; }
+.status.info { display:block; background:rgba(76,201,240,0.08); border:1px solid rgba(76,201,240,0.2); color:var(--blue); }
+.status.ok { display:block; background:rgba(80,200,120,0.1); border:1px solid rgba(80,200,120,0.3); color:var(--green); }
+
+/* ADS GRID */
+.ads-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:32px; }
+.ad-box { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:12px; text-align:center; position:relative; overflow:hidden; }
+.ad-box::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,var(--gold),transparent); }
+
+/* HOW IT WORKS */
+.how-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:32px; margin-bottom:32px; }
+.how-title { font-family:'Orbitron',monospace; font-size:0.8rem; letter-spacing:3px; color:var(--text-dim); margin-bottom:24px; text-align:center; }
+.steps { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:20px; }
+.step { text-align:center; }
+.step-num { width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg,var(--blue),var(--gold)); display:flex; align-items:center; justify-content:center; font-family:'Orbitron',monospace; font-size:1rem; font-weight:900; color:var(--bg); margin:0 auto 12px; }
+.step-title { font-family:'Orbitron',monospace; font-size:0.75rem; color:var(--text); letter-spacing:1px; margin-bottom:6px; }
+.step-desc { font-size:0.8rem; color:var(--text-dim); line-height:1.5; }
+
+/* LEADERBOARD */
+.lb-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:32px; }
+.lb-title { font-family:'Orbitron',monospace; font-size:0.8rem; letter-spacing:3px; color:var(--text-dim); margin-bottom:20px; }
+.lb-row { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--border); }
+.lb-row:last-child { border-bottom:none; }
+.lb-rank { font-family:'Orbitron',monospace; font-size:0.85rem; font-weight:900; width:30px; }
+.lb-rank.r1 { color:var(--gold); }
+.lb-rank.r2 { color:#c0c0c0; }
+.lb-rank.r3 { color:#cd7f32; }
+.lb-name { font-family:'Orbitron',monospace; font-size:0.8rem; flex:1; }
+.lb-amount { font-family:'Orbitron',monospace; font-size:0.8rem; color:var(--blue); }
+
+/* FOOTER */
+.footer { position:relative; z-index:10; text-align:center; padding:24px; border-top:1px solid var(--border); font-size:0.75rem; color:var(--text-dim); letter-spacing:1px; }
+.footer a { color:var(--blue); text-decoration:none; }
+
+@keyframes fadeDown { from{opacity:0;transform:translateY(-20px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+@media(max-width:600px) {
+  .hero-title { font-size:1.8rem; }
+  .ads-grid { grid-template-columns:1fr; }
+  .header { padding:14px 18px; }
+}
+</style>
+</head>
+<body>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+
+<!-- HEADER -->
+<div class="header">
+  <a href="#" class="logo"><span class="logo-icon">⚡</span> BPW Faucet</a>
+  <div class="nav">
+    <a href="https://boki.pw" target="_blank">BoCrypto</a>
+    <a href="https://boki.pw/shop.html" target="_blank">Shop</a>
+    <a href="https://boki.pw/leaderboard.html" target="_blank">Leaderboard</a>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-badge">⚡ FREE BPW TOKENS DAILY</div>
+    <div class="hero-title">BPW FAUCET</div>
+    <div class="hero-sub">Claim free BPW tokens every 24 hours</div>
+    <div class="hero-stats">
+      <div class="hstat">
+        <div class="hstat-val">1</div>
+        <div class="hstat-label">Satoshi BPW / claim</div>
+      </div>
+      <div class="hstat">
+        <div class="hstat-val">24h</div>
+        <div class="hstat-label">Cooldown</div>
+      </div>
+      <div class="hstat">
+        <div class="hstat-val">FREE</div>
+        <div class="hstat-label">No cost</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AD TOP -->
+  <div class="ad-top">
+    <div class="ad-label">Advertisement</div>
+    <!-- BEGIN AADS AD UNIT 2436787 -->
+    <div id="frame" style="width: 100%;margin: auto;position: relative; z-index: 99998;">
+      <iframe data-aa='2436787' src='//acceptable.a-ads.com/2436787/?size=Adaptive'
+        style='border:0; padding:0; width:100%; height:auto; overflow:hidden;display: block;margin: auto'></iframe>
+    </div>
+    <!-- END AADS AD UNIT 2436787 -->
+  </div>
+
+  <!-- FAUCET CARD -->
+  <div class="faucet-card">
+    <div class="faucet-title">⚡ CLAIM YOUR BPW TOKENS</div>
+
+    <!-- LOGIN -->
+    <div id="loginSection">
+      <label class="ilabel">Hive Username</label>
+      <div class="iwrap">
+        <input class="inp" type="text" id="unameInput" placeholder="your-hive-username" autocomplete="off"/>
+      </div>
+      <button class="btn-login" id="loginBtn" onclick="doLogin()">Connect with Keychain</button>
+      <div class="status" id="loginStatus"></div>
+      <div style="text-align:center;margin-top:16px;font-size:0.75rem;color:var(--text-dim);">
+        Need Keychain? <a href="https://hive-keychain.com" target="_blank" style="color:var(--blue);">Download here</a>
+      </div>
+    </div>
+
+    <!-- CLAIM -->
+    <div id="claimSection">
+      <div class="user-info">
+        <div class="user-av" id="userAv">?</div>
+        <div>
+          <div class="user-name" id="userName">—</div>
+          <div class="user-sub">Hive Account Connected</div>
+        </div>
+        <button class="logout-btn" onclick="doLogout()">Disconnect</button>
+      </div>
+
+      <div class="reward-box">
+        <div class="reward-label">Daily Reward</div>
+        <div class="reward-amount">0.00000001</div>
+        <div class="reward-token">BPW Token</div>
+      </div>
+
+      <button class="btn-claim" id="claimBtn" onclick="doClaim()">⚡ CLAIM NOW</button>
+
+      <div class="countdown-wrap" id="countdownWrap" style="display:none;">
+        <div class="countdown-label">Next claim available in:</div>
+        <div class="countdown" id="countdown">23:59:59</div>
+      </div>
+
+      <div class="status" id="claimStatus"></div>
+
+      <div class="my-stats">
+        <div class="mstat">
+          <div class="mstat-val" id="myTotal">0</div>
+          <div class="mstat-label">Total Claims</div>
+        </div>
+        <div class="mstat">
+          <div class="mstat-val" id="myPending">0</div>
+          <div class="mstat-label">Pending (satoshi)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADS GRID -->
+  <div class="ads-grid">
+    <div class="ad-box">
+      <div class="ad-label" style="font-size:0.55rem;color:var(--text-dim);margin-bottom:8px;font-family:'Orbitron',monospace;letter-spacing:2px;">Advertisement</div>
+      <!-- BEGIN AADS AD UNIT 2436787 -->
+      <div id="frame2" style="width:100%;margin:auto;position:relative;z-index:99998;">
+        <iframe data-aa='2436787' src='//acceptable.a-ads.com/2436787/?size=Adaptive'
+          style='border:0;padding:0;width:100%;height:auto;overflow:hidden;display:block;margin:auto'></iframe>
+      </div>
+      <!-- END AADS AD UNIT 2436787 -->
+    </div>
+    <div class="ad-box">
+      <div class="ad-label" style="font-size:0.55rem;color:var(--text-dim);margin-bottom:8px;font-family:'Orbitron',monospace;letter-spacing:2px;">Advertisement</div>
+      <!-- BEGIN AADS AD UNIT 2436787 -->
+      <div id="frame3" style="width:100%;margin:auto;position:relative;z-index:99998;">
+        <iframe data-aa='2436787' src='//acceptable.a-ads.com/2436787/?size=Adaptive'
+          style='border:0;padding:0;width:100%;height:auto;overflow:hidden;display:block;margin:auto'></iframe>
+      </div>
+      <!-- END AADS AD UNIT 2436787 -->
+    </div>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <div class="how-card">
+    <div class="how-title">HOW IT WORKS</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-title">CONNECT</div>
+        <div class="step-desc">Login with your Hive Keychain wallet</div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-title">CLAIM</div>
+        <div class="step-desc">Click the claim button to earn 1 satoshi BPW</div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-title">WAIT</div>
+        <div class="step-desc">Come back every 24 hours to claim again</div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-title">RECEIVE</div>
+        <div class="step-desc">BPW tokens sent to your Hive wallet weekly</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEADERBOARD -->
+  <div class="lb-card">
+    <div class="lb-title">🏆 TOP CLAIMERS</div>
+    <div id="leaderboard">
+      <div style="text-align:center;color:var(--text-dim);font-size:0.85rem;padding:20px;">No claims yet. Be the first!</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  BPW Faucet — Part of <a href="https://boki.pw" target="_blank">BoCrypto Ecosystem</a> | Developed by BokiCa | <a href="https://boki.pw" target="_blank">boki.pw</a>
+</div>
+
+<script>
+var ADMIN = 'bokica80';
+var COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 hours
+var currentUser = null;
+var countdownInterval = null;
+
+// ── AUTO LOGIN ──
+window.onload = function() {
+  var saved = sessionStorage.getItem('bpw_faucet_user');
+  if (saved) { currentUser = saved; showClaim(saved); }
+  loadLeaderboard();
+};
+
+document.getElementById('unameInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') doLogin();
+});
+
+function showLoginStatus(msg, type) {
+  var el = document.getElementById('loginStatus');
+  el.textContent = msg;
+  el.className = 'status ' + type;
+}
+
+function showClaimStatus(msg, type) {
+  var el = document.getElementById('claimStatus');
+  el.textContent = msg;
+  el.className = 'status ' + type;
+}
+
+// ── LOGIN ──
+function doLogin() {
+  var uname = document.getElementById('unameInput').value.trim().toLowerCase();
+  if (!uname) { showLoginStatus('Enter your Hive username.', 'err'); return; }
+  if (typeof window.hive_keychain === 'undefined') { showLoginStatus('Hive Keychain not detected. Please install it.', 'err'); return; }
+  var btn = document.getElementById('loginBtn');
+  btn.disabled = true; btn.textContent = 'Connecting...';
+  showLoginStatus('Waiting for Keychain...', 'info');
+  window.hive_keychain.requestSignBuffer(uname, 'BPW Faucet Login ' + Date.now(), 'Posting', function(res) {
+    btn.disabled = false; btn.textContent = 'Connect with Keychain';
+    if (res.success) {
+      currentUser = uname;
+      sessionStorage.setItem('bpw_faucet_user', uname);
+      showClaim(uname);
+    } else {
+      showLoginStatus(res.message || 'Login failed.', 'err');
+    }
+  });
+}
+
+function doLogout() {
+  currentUser = null;
+  sessionStorage.removeItem('bpw_faucet_user');
+  if (countdownInterval) clearInterval(countdownInterval);
+  document.getElementById('claimSection').style.display = 'none';
+  document.getElementById('loginSection').style.display = 'block';
+  document.getElementById('unameInput').value = '';
+  document.getElementById('loginStatus').className = 'status';
+}
+
+// ── SHOW CLAIM ──
+function showClaim(username) {
+  document.getElementById('loginSection').style.display = 'none';
+  document.getElementById('claimSection').style.display = 'block';
+  document.getElementById('userAv').textContent = username[0].toUpperCase();
+  document.getElementById('userName').textContent = '@' + username;
+  updateClaimButton(username);
+  updateMyStats(username);
+}
+
+// ── CLAIM LOGIC ──
+function getLastClaim(username) {
+  var key = 'bpw_claim_' + username;
+  var val = localStorage.getItem(key);
+  return val ? parseInt(val) : 0;
+}
+
+function setLastClaim(username) {
+  localStorage.setItem('bpw_claim_' + username, Date.now().toString());
+}
+
+function getTotalClaims(username) {
+  var key = 'bpw_total_' + username;
+  return parseInt(localStorage.getItem(key) || '0');
+}
+
+function addClaim(username) {
+  var key = 'bpw_total_' + username;
+  var current = getTotalClaims(username);
+  localStorage.setItem(key, (current + 1).toString());
+  // Update leaderboard
+  var lb = JSON.parse(localStorage.getItem('bpw_leaderboard') || '{}');
+  lb[username] = (lb[username] || 0) + 1;
+  localStorage.setItem('bpw_leaderboard', JSON.stringify(lb));
+}
+
+function canClaim(username) {
+  var last = getLastClaim(username);
+  return (Date.now() - last) >= COOLDOWN_MS;
+}
+
+function timeUntilClaim(username) {
+  var last = getLastClaim(username);
+  var remaining = COOLDOWN_MS - (Date.now() - last);
+  return Math.max(0, remaining);
+}
+
+function updateClaimButton(username) {
+  var btn = document.getElementById('claimBtn');
+  var cwrap = document.getElementById('countdownWrap');
+  if (canClaim(username)) {
+    btn.disabled = false;
+    btn.textContent = '⚡ CLAIM NOW';
+    btn.className = 'btn-claim';
+    cwrap.style.display = 'none';
+    if (countdownInterval) clearInterval(countdownInterval);
+  } else {
+    btn.disabled = true;
+    btn.textContent = '✓ CLAIMED';
+    btn.className = 'btn-claim claimed';
+    cwrap.style.display = 'block';
+    startCountdown(username);
+  }
+}
+
+function startCountdown(username) {
+  if (countdownInterval) clearInterval(countdownInterval);
+  countdownInterval = setInterval(function() {
+    var remaining = timeUntilClaim(username);
+    if (remaining <= 0) {
+      clearInterval(countdownInterval);
+      updateClaimButton(username);
+      return;
+    }
+    var h = Math.floor(remaining / 3600000);
+    var m = Math.floor((remaining % 3600000) / 60000);
+    var s = Math.floor((remaining % 60000) / 1000);
+    document.getElementById('countdown').textContent =
+      String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+  }, 1000);
+}
+
+function doClaim() {
+  if (!currentUser) return;
+  if (!canClaim(currentUser)) { showClaimStatus('Already claimed today. Come back tomorrow!', 'err'); return; }
+  if (typeof window.hive_keychain === 'undefined') { showClaimStatus('Hive Keychain not detected.', 'err'); return; }
+
+  var btn = document.getElementById('claimBtn');
+  btn.disabled = true;
+  btn.textContent = 'Processing...';
+
+  var claimData = JSON.stringify({
+    app: 'bpw-faucet',
+    action: 'claim',
+    player: currentUser,
+    reward: '0.00000001 BPW',
+    ts: Math.floor(Date.now() / 1000)
+  });
+
+  window.hive_keychain.requestCustomJson(
+    currentUser, 'bpw-faucet', 'Posting', claimData, 'BPW Faucet Claim',
+    function(res) {
+      if (res.success) {
+        setLastClaim(currentUser);
+        addClaim(currentUser);
+        updateClaimButton(currentUser);
+        updateMyStats(currentUser);
+        loadLeaderboard();
+        showClaimStatus('✓ Claimed! 1 satoshi BPW recorded. Tokens sent weekly by @' + ADMIN, 'ok');
+      } else {
+        btn.disabled = false;
+        btn.textContent = '⚡ CLAIM NOW';
+        showClaimStatus(res.message || 'Claim failed. Try again.', 'err');
+      }
+    }
+  );
+}
+
+function updateMyStats(username) {
+  var total = getTotalClaims(username);
+  document.getElementById('myTotal').textContent = total;
+  document.getElementById('myPending').textContent = total;
+}
+
+// ── LEADERBOARD ──
+function loadLeaderboard() {
+  var lb = JSON.parse(localStorage.getItem('bpw_leaderboard') || '{}');
+  var sorted = Object.entries(lb).sort(function(a,b){return b[1]-a[1];}).slice(0,10);
+  var el = document.getElementById('leaderboard');
+  if (!sorted.length) {
+    el.innerHTML = '<div style="text-align:center;color:var(--text-dim);font-size:0.85rem;padding:20px;">No claims yet. Be the first!</div>';
+    return;
+  }
+  var html = '';
+  sorted.forEach(function(entry, i) {
+    var rankClass = i===0?'r1':i===1?'r2':i===2?'r3':'';
+    var rankEmoji = i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1);
+    html += '<div class="lb-row">';
+    html += '<div class="lb-rank ' + rankClass + '">' + rankEmoji + '</div>';
+    html += '<div class="lb-name">@' + entry[0] + '</div>';
+    html += '<div class="lb-amount">' + entry[1] + ' satoshi</div>';
+    html += '</div>';
+  });
+  el.innerHTML = html;
+}
+</script>
+</body>
+</html>
