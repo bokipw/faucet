@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BPW Faucet — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --bg:#0a0a0f; --surface:#12121a; --surface2:#1a1a26;
+  --border:#2a2a3a; --text:#e8e8f0; --text-dim:#7a7a9a;
+  --red:#e63946; --red-dark:#c1121f; --gold:#ffd60a;
+  --green:#50c878; --blue:#4cc9f0;
+}
+body { font-family:'Rajdhani',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; position:relative; overflow-x:hidden; }
+body::before { content:''; position:fixed; inset:0; background-image:linear-gradient(rgba(76,201,240,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(76,201,240,0.02) 1px,transparent 1px); background-size:40px 40px; pointer-events:none; z-index:0; }
+
+.header { position:relative; z-index:10; display:flex; align-items:center; justify-content:space-between; padding:18px 32px; border-bottom:1px solid var(--border); background:rgba(10,10,15,0.9); backdrop-filter:blur(10px); flex-wrap:wrap; gap:12px; }
+.logo { font-family:'Orbitron',monospace; font-size:1.2rem; font-weight:900; letter-spacing:3px; background:linear-gradient(135deg,var(--blue),var(--gold)); -webkit-background-clip:text; background-clip:text; color:transparent; text-decoration:none; }
+.nav { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.nav a, .nav button { padding:7px 16px; border-radius:6px; font-family:'Orbitron',monospace; font-size:0.65rem; letter-spacing:2px; cursor:pointer; text-decoration:none; border:1px solid var(--border); color:var(--text-dim); background:none; transition:all 0.2s; }
+.nav a:hover, .nav button:hover { border-color:var(--blue); color:var(--blue); }
+.abadge { font-family:'Orbitron',monospace; font-size:0.6rem; letter-spacing:2px; padding:4px 10px; border-radius:20px; background:rgba(76,201,240,0.1); border:1px solid rgba(76,201,240,0.3); color:var(--blue); }
+
+#loginOverlay { position:fixed; inset:0; background:rgba(10,10,15,0.97); z-index:100; display:flex; align-items:center; justify-content:center; }
+.lbox { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:40px; width:100%; max-width:420px; position:relative; overflow:hidden; }
+.lbox::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,var(--blue),var(--gold),transparent); }
+.ltitle { font-family:'Orbitron',monospace; font-size:0.85rem; letter-spacing:3px; color:var(--text-dim); text-align:center; margin-bottom:6px; }
+.lsub { font-size:0.8rem; color:var(--text-dim); text-align:center; margin-bottom:24px; }
+.ilabel { display:block; font-size:0.75rem; letter-spacing:2px; color:var(--text-dim); margin-bottom:8px; font-family:'Orbitron',monospace; }
+.iwrap { position:relative; margin-bottom:16px; }
+.iwrap::before { content:'@'; position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--blue); font-family:'Orbitron',monospace; }
+.inp { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:13px 14px 13px 36px; color:var(--text); font-family:'Rajdhani',sans-serif; font-size:1rem; outline:none; transition:border-color 0.2s; }
+.inp:focus { border-color:var(--blue); }
+.inp::placeholder { color:var(--text-dim); }
+.btnp { width:100%; padding:14px; background:linear-gradient(135deg,#0a4a6e,var(--blue)); border:none; border-radius:8px; color:white; font-family:'Orbitron',monospace; font-size:0.8rem; font-weight:700; letter-spacing:3px; cursor:pointer; transition:all 0.2s; }
+.btnp:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(76,201,240,0.4); }
+.btnp:disabled { opacity:0.5; cursor:not-allowed; transform:none; box-shadow:none; }
+.lmsg { margin-top:12px; padding:10px 14px; border-radius:8px; font-size:0.85rem; display:none; }
+.lmsg.err { display:block; background:rgba(230,57,70,0.1); border:1px solid rgba(230,57,70,0.3); color:#ff6b78; }
+.lmsg.info { display:block; background:rgba(76,201,240,0.08); border:1px solid rgba(76,201,240,0.2); color:var(--blue); }
+
+#adminMain { display:none; position:relative; z-index:10; max-width:1200px; margin:0 auto; padding:40px 20px; }
+.ptitle { font-family:'Orbitron',monospace; font-size:1.4rem; font-weight:900; background:linear-gradient(135deg,var(--blue),var(--gold)); -webkit-background-clip:text; background-clip:text; color:transparent; margin-bottom:4px; }
+.psub { font-size:0.8rem; color:var(--text-dim); letter-spacing:2px; margin-bottom:32px; }
+
+.stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; margin-bottom:32px; }
+.stat { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px; position:relative; overflow:hidden; }
+.stat::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,var(--blue),var(--gold),transparent); }
+.slabel { font-size:0.68rem; color:var(--text-dim); letter-spacing:2px; text-transform:uppercase; margin-bottom:8px; }
+.sval { font-family:'Orbitron',monospace; font-size:1.6rem; font-weight:900; }
+.sval.gold { color:var(--gold); }
+.sval.green { color:var(--green); }
+.sval.blue { color:var(--blue); }
+
+.sectitle { font-family:'Orbitron',monospace; font-size:0.78rem; letter-spacing:3px; color:var(--text-dim); margin-bottom:14px; display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.refbtn { font-size:0.6rem; padding:4px 10px; border:1px solid var(--border); border-radius:6px; background:none; color:var(--text-dim); cursor:pointer; font-family:'Orbitron',monospace; letter-spacing:1px; transition:all 0.2s; }
+.refbtn:hover { border-color:var(--blue); color:var(--blue); }
+
+.twrap { background:var(--surface); border:1px solid var(--border); border-radius:14px; overflow-x:auto; margin-bottom:32px; }
+.tbl { width:100%; border-collapse:collapse; min-width:800px; }
+.tbl th { background:var(--surface2); font-family:'Orbitron',monospace; font-size:0.6rem; letter-spacing:2px; color:var(--text-dim); padding:13px 18px; text-align:left; border-bottom:1px solid var(--border); }
+.tbl td { padding:14px 18px; border-bottom:1px solid var(--border); font-size:0.88rem; vertical-align:middle; }
+.tbl tr:last-child td { border-bottom:none; }
+.tbl tr:hover td { background:rgba(255,255,255,0.015); }
+
+.uname { font-family:'Orbitron',monospace; font-size:0.8rem; }
+.bdg { display:inline-block; font-family:'Orbitron',monospace; font-size:0.58rem; letter-spacing:1px; padding:3px 9px; border-radius:20px; }
+.bdg.pending { background:rgba(255,214,10,0.1); border:1px solid rgba(255,214,10,0.3); color:var(--gold); }
+.bdg.sent { background:rgba(80,200,120,0.1); border:1px solid rgba(80,200,120,0.3); color:var(--green); }
+.sendbtn { padding:7px 14px; background:linear-gradient(135deg,#0a4a6e,var(--blue)); border:none; border-radius:6px; color:white; font-family:'Orbitron',monospace; font-size:0.6rem; letter-spacing:2px; cursor:pointer; transition:all 0.2s; white-space:nowrap; }
+.sendbtn:hover { transform:translateY(-1px); box-shadow:0 4px 14px rgba(76,201,240,0.4); }
+.sendbtn:disabled { opacity:0.4; cursor:not-allowed; transform:none; box-shadow:none; }
+.delbtn { background:none; border:1px solid rgba(230,57,70,0.25); color:rgba(230,57,70,0.5); border-radius:6px; padding:6px 9px; cursor:pointer; font-size:0.85rem; transition:all 0.2s; margin-left:6px; }
+.delbtn:hover { border-color:var(--red); color:var(--red); background:rgba(230,57,70,0.08); }
+.sentlbl { font-family:'Orbitron',monospace; font-size:0.6rem; color:var(--green); }
+.empty { text-align:center; padding:50px; color:var(--text-dim); font-size:0.85rem; letter-spacing:1px; }
+.loading { text-align:center; padding:36px; color:var(--text-dim); font-size:0.8rem; letter-spacing:2px; animation:pulse 1.5s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <a href="index.html" class="logo">⚡ BPW Faucet Admin</a>
+  <div class="nav">
+    <span class="abadge">⚡ ADMIN</span>
+    <a href="index.html">Faucet</a>
+    <a href="https://boki.pw" target="_blank">BoCrypto</a>
+    <button onclick="doLogout()">Logout</button>
+  </div>
+</div>
+
+<div id="loginOverlay">
+  <div class="lbox">
+    <div style="text-align:center;margin-bottom:16px;"><span class="abadge">⚡ ADMIN ONLY</span></div>
+    <div class="ltitle">Admin Access</div>
+    <div class="lsub">Only @bokica80 can enter</div>
+    <label class="ilabel">Hive Username</label>
+    <div class="iwrap">
+      <input class="inp" type="text" id="unameInput" placeholder="bokica80" autocomplete="off"/>
+    </div>
+    <button class="btnp" id="loginBtn" onclick="doLogin()">Login with Keychain</button>
+    <div class="lmsg" id="lmsg"></div>
+  </div>
+</div>
+
+<div id="adminMain">
+  <div class="ptitle">FAUCET ADMIN</div>
+  <div class="psub">BPW Faucet — Withdraw Requests</div>
+
+  <div class="stats">
+    <div class="stat"><div class="slabel">Total Requests</div><div class="sval blue" id="statTotal">—</div></div>
+    <div class="stat"><div class="slabel">Pending</div><div class="sval" style="color:var(--red)" id="statPending">—</div></div>
+    <div class="stat"><div class="slabel">Completed</div><div class="sval green" id="statCompleted">—</div></div>
+  </div>
+
+  <div class="sectitle">
+    💰 Withdraw Requests (1 BoCrypto fee received)
+    <button class="refbtn" onclick="loadRequests()">↺ REFRESH</button>
+  </div>
+  <div class="twrap">
+    <table class="tbl">
+      <thead><tr><th>User</th><th>Amount (satoshi)</th><th>Date</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody id="tblBody"><tr><td colspan="5" class="loading">Loading requests...</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+var ADMIN = 'bokica80';
+var COMPLETED_KEY = 'bpw_withdraw_completed';
+var DELETED_KEY = 'bpw_withdraw_deleted';
+var completedSet = new Set(JSON.parse(localStorage.getItem(COMPLETED_KEY) || '[]'));
+var deletedSet = new Set(JSON.parse(localStorage.getItem(DELETED_KEY) || '[]'));
+var requests = [];
+
+window.onload = function() {
+  var saved = sessionStorage.getItem('bpw_faucet_admin');
+  if (saved === ADMIN) { showAdmin(); }
+};
+
+document.getElementById('unameInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') doLogin();
+});
+
+function showMsg(msg, type) {
+  var el = document.getElementById('lmsg');
+  el.textContent = msg;
+  el.className = 'lmsg ' + type;
+}
+
+function doLogin() {
+  var uname = document.getElementById('unameInput').value.trim().toLowerCase();
+  if (!uname) { showMsg('Enter your username.', 'err'); return; }
+  if (uname !== ADMIN) { showMsg('Access denied.', 'err'); return; }
+  if (typeof window.hive_keychain === 'undefined') { showMsg('Hive Keychain not detected.', 'err'); return; }
+  var btn = document.getElementById('loginBtn');
+  btn.disabled = true; btn.textContent = 'Connecting...';
+  showMsg('Waiting for Keychain...', 'info');
+  window.hive_keychain.requestSignBuffer(uname, 'BPW Faucet Admin ' + Date.now(), 'Posting', function(res) {
+    btn.disabled = false; btn.textContent = 'Login with Keychain';
+    if (res.success) {
+      sessionStorage.setItem('bpw_faucet_admin', uname);
+      showAdmin();
+    } else {
+      showMsg(res.message || 'Login failed.', 'err');
+    }
+  });
+}
+
+function doLogout() {
+  sessionStorage.removeItem('bpw_faucet_admin');
+  document.getElementById('adminMain').style.display = 'none';
+  document.getElementById('loginOverlay').style.display = 'flex';
+  document.getElementById('unameInput').value = '';
+  document.getElementById('lmsg').className = 'lmsg';
+}
+
+function showAdmin() {
+  document.getElementById('loginOverlay').style.display = 'none';
+  document.getElementById('adminMain').style.display = 'block';
+  loadRequests();
+}
+
+function loadRequests() {
+  document.getElementById('tblBody').innerHTML = '<tr><td colspan="5" class="loading">Fetching withdraw requests...</td></tr>';
+  fetch('https://history.hive-engine.com/accountHistory?account=' + ADMIN + '&symbol=BOCRYPTO&limit=500&offset=0')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var all = data || [];
+      var tempRequests = [];
+      for (var i = 0; i < all.length; i++) {
+        var tx = all[i];
+        if (tx.operation === 'tokens_transfer' && tx.to === ADMIN && tx.memo && tx.memo.indexOf('BPW_WITHDRAW:') === 0) {
+          var parts = tx.memo.split(':');
+          var username = parts[1];
+          var amount = parseInt(parts[2]) || 250;
+          var txId = tx.trx_id || (tx.timestamp + '_' + username);
+          if (deletedSet.has(txId)) continue;
+          tempRequests.push({
+            id: txId,
+            user: username,
+            amount: amount,
+            timestamp: tx.timestamp,
+            completed: completedSet.has(txId)
+          });
+        }
+      }
+      tempRequests.sort(function(a, b) { return b.timestamp - a.timestamp; });
+      requests = tempRequests;
+      renderTable();
+      updateStats();
+    })
+    .catch(function() {
+      document.getElementById('tblBody').innerHTML = '<tr><td colspan="5" class="loading" style="color:var(--red)">Error loading. Try refresh.<td></tr>';
+    });
+}
+
+function renderTable() {
+  var tbody = document.getElementById('tblBody');
+  if (!requests.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="empty">No withdraw requests yet.</td></tr>';
+    return;
+  }
+  var html = '';
+  for (var n = 0; n < requests.length; n++) {
+    var r = requests[n];
+    var done = r.completed;
+    var date = new Date(r.timestamp * 1000).toLocaleDateString('sr-RS', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    var sid = r.id.replace(/[^a-z0-9]/gi, '_');
+    html += '<tr>';
+    html += '<td><div class="uname">@' + escapeHtml(r.user) + '</div></td>';
+    html += '<td>' + r.amount + ' satoshi BPW</td>';
+    html += '<td>' + date + '</td>';
+    html += '<td><span class="bdg ' + (done ? 'sent' : 'pending') + '">' + (done ? '✓ COMPLETED' : 'PENDING') + '</span></td>';
+    html += '<td>';
+    if (done) {
+      html += '<span class="sentlbl">✓ Done</span>';
+    } else {
+      html += '<button class="sendbtn" id="sbtn-' + sid + '" onclick="sendBPW(\'' + r.user.replace(/'/g, "\\'") + '\', ' + r.amount + ', \'' + r.id.replace(/'/g, "\\'") + '\')">SEND BPW</button>';
+    }
+    html += '<button class="delbtn" onclick="deleteRequest(\'' + r.id.replace(/'/g, "\\'") + '\')" title="Delete Permanently">🗑</button>';
+    html += '</td>';
+    html += '</tr>';
+  }
+  tbody.innerHTML = html;
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/[&<>]/g, function(m) {
+    if (m === '&') return '&amp;';
+    if (m === '<') return '&lt;';
+    if (m === '>') return '&gt;';
+    return m;
+  });
+}
+
+function updateStats() {
+  var total = requests.length;
+  var completed = 0;
+  for (var i = 0; i < requests.length; i++) {
+    if (requests[i].completed) completed++;
+  }
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statPending').textContent = total - completed;
+  document.getElementById('statCompleted').textContent = completed;
+}
+
+function sendBPW(username, amount, requestId) {
+  if (typeof window.hive_keychain === 'undefined') { alert('Keychain not detected!'); return; }
+  var btn = document.getElementById('sbtn-' + requestId.replace(/[^a-z0-9]/gi, '_'));
+  if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
+  var bpwAmount = (amount / 100000000).toFixed(8);
+  var json = JSON.stringify({
+    contractName: 'tokens',
+    contractAction: 'transfer',
+    contractPayload: {
+      symbol: 'BPW',
+      to: username,
+      quantity: bpwAmount,
+      memo: 'BPW Faucet Withdrawal - ' + amount + ' satoshi'
+    }
+  });
+  window.hive_keychain.requestCustomJson(ADMIN, 'ssc-mainnet-hive', 'Active', json, 'Send ' + bpwAmount + ' BPW to @' + username, function(res) {
+    if (res.success) {
+      completedSet.add(requestId);
+      localStorage.setItem(COMPLETED_KEY, JSON.stringify(Array.from(completedSet)));
+      for (var i = 0; i < requests.length; i++) {
+        if (requests[i].id === requestId) {
+          requests[i].completed = true;
+          break;
+        }
+      }
+      renderTable();
+      updateStats();
+    } else {
+      if (btn) { btn.disabled = false; btn.textContent = 'SEND BPW'; }
+      alert('Failed: ' + (res.message || 'Unknown error'));
+    }
+  });
+}
+
+function deleteRequest(requestId) {
+  if (!confirm('Permanently delete this request from admin panel?')) return;
+  deletedSet.add(requestId);
+  localStorage.setItem(DELETED_KEY, JSON.stringify(Array.from(deletedSet)));
+  var newRequests = [];
+  for (var i = 0; i < requests.length; i++) {
+    if (requests[i].id !== requestId) {
+      newRequests.push(requests[i]);
+    }
+  }
+  requests = newRequests;
+  renderTable();
+  updateStats();
+}
+</script>
+</body>
+</html>
