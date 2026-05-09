@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BPW Faucet — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --bg:#0a0a0f; --surface:#12121a; --surface2:#1a1a26;
+  --border:#2a2a3a; --text:#e8e8f0; --text-dim:#7a7a9a;
+  --red:#e63946; --gold:#ffd60a; --green:#50c878; --blue:#4cc9f0;
+}
+body { font-family:'Rajdhani',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+.header { display:flex; justify-content:space-between; padding:18px 32px; border-bottom:1px solid var(--border); background:rgba(10,10,15,0.9); flex-wrap:wrap; gap:12px; }
+.logo { font-family:'Orbitron',monospace; font-size:1.2rem; font-weight:900; background:linear-gradient(135deg,var(--blue),var(--gold)); -webkit-background-clip:text; background-clip:text; color:transparent; text-decoration:none; }
+.nav { display:flex; gap:8px; align-items:center; }
+.nav button, .nav a { padding:7px 16px; border-radius:6px; font-family:'Orbitron',monospace; font-size:0.65rem; border:1px solid var(--border); background:none; color:var(--text-dim); cursor:pointer; text-decoration:none; }
+.nav button:hover, .nav a:hover { border-color:var(--blue); color:var(--blue); }
+.abadge { padding:4px 10px; border-radius:20px; background:rgba(76,201,240,0.1); border:1px solid rgba(76,201,240,0.3); color:var(--blue); font-size:0.6rem; }
+
+#loginOverlay { position:fixed; inset:0; background:rgba(10,10,15,0.97); z-index:100; display:flex; align-items:center; justify-content:center; }
+.lbox { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:40px; width:100%; max-width:420px; position:relative; }
+.lbox::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,var(--blue),var(--gold),transparent); }
+.ltitle { font-family:'Orbitron',monospace; font-size:0.85rem; letter-spacing:3px; color:var(--text-dim); text-align:center; margin-bottom:24px; }
+.iwrap { position:relative; margin-bottom:16px; }
+.iwrap::before { content:'@'; position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--blue); }
+.inp { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:13px 14px 13px 36px; color:var(--text); }
+.btnp { width:100%; padding:14px; background:linear-gradient(135deg,#0a4a6e,var(--blue)); border:none; border-radius:8px; color:white; font-family:'Orbitron',monospace; cursor:pointer; }
+.lmsg { margin-top:12px; padding:10px; border-radius:8px; display:none; }
+.lmsg.err { display:block; background:rgba(230,57,70,0.1); border:1px solid rgba(230,57,70,0.3); color:#ff6b78; }
+
+#adminMain { display:none; max-width:1200px; margin:0 auto; padding:40px 20px; }
+.ptitle { font-family:'Orbitron',monospace; font-size:1.4rem; font-weight:900; background:linear-gradient(135deg,var(--blue),var(--gold)); -webkit-background-clip:text; background-clip:text; color:transparent; margin-bottom:4px; }
+.psub { font-size:0.8rem; color:var(--text-dim); letter-spacing:2px; margin-bottom:32px; }
+
+.stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; margin-bottom:32px; }
+.stat { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px; position:relative; }
+.stat::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,var(--blue),var(--gold),transparent); }
+.slabel { font-size:0.68rem; color:var(--text-dim); letter-spacing:2px; margin-bottom:8px; }
+.sval { font-family:'Orbitron',monospace; font-size:1.6rem; font-weight:900; }
+.sval.gold { color:var(--gold); }
+.sval.green { color:var(--green); }
+.sval.blue { color:var(--blue); }
+
+.sectitle { font-family:'Orbitron',monospace; font-size:0.78rem; letter-spacing:3px; color:var(--text-dim); margin-bottom:14px; display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.refbtn { font-size:0.6rem; padding:4px 10px; border:1px solid var(--border); border-radius:6px; background:none; color:var(--text-dim); cursor:pointer; font-family:'Orbitron',monospace; }
+.refbtn:hover { border-color:var(--blue); color:var(--blue); }
+
+.twrap { background:var(--surface); border:1px solid var(--border); border-radius:14px; overflow-x:auto; margin-bottom:32px; }
+.tbl { width:100%; border-collapse:collapse; min-width:700px; }
+.tbl th { background:var(--surface2); padding:13px 18px; text-align:left; border-bottom:1px solid var(--border); font-family:'Orbitron',monospace; font-size:0.6rem; color:var(--text-dim); }
+.tbl td { padding:14px 18px; border-bottom:1px solid var(--border); font-size:0.88rem; }
+.uname { font-family:'Orbitron',monospace; font-size:0.8rem; }
+.aval { font-family:'Orbitron',monospace; font-size:0.85rem; color:var(--blue); }
+.bdg { display:inline-block; padding:3px 9px; border-radius:20px; font-size:0.58rem; }
+.bdg.pending { background:rgba(255,214,10,0.1); border:1px solid rgba(255,214,10,0.3); color:var(--gold); }
+.bdg.sent { background:rgba(80,200,120,0.1); border:1px solid rgba(80,200,120,0.3); color:var(--green); }
+.sendbtn { padding:7px 14px; background:linear-gradient(135deg,#0a4a6e,var(--blue)); border:none; border-radius:6px; color:white; font-family:'Orbitron',monospace; font-size:0.6rem; cursor:pointer; }
+.delbtn { background:none; border:1px solid rgba(230,57,70,0.25); color:rgba(230,57,70,0.5); border-radius:6px; padding:6px 9px; cursor:pointer; margin-left:6px; }
+.loading { text-align:center; padding:36px; color:var(--text-dim); }
+.empty { text-align:center; padding:50px; color:var(--text-dim); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <a href="index.html" class="logo">⚡ BPW Faucet Admin</a>
+  <div class="nav">
+    <span class="abadge">⚡ ADMIN</span>
+    <a href="index.html">Faucet</a>
+    <a href="https://boki.pw" target="_blank">BoCrypto</a>
+    <button onclick="doLogout()">Logout</button>
+  </div>
+</div>
+
+<div id="loginOverlay">
+  <div class="lbox">
+    <div style="text-align:center;margin-bottom:16px;"><span class="abadge">⚡ ADMIN ONLY</span></div>
+    <div class="ltitle">Admin Access</div>
+    <div class="lsub" style="font-size:0.8rem;color:var(--text-dim);text-align:center;margin-bottom:24px;">Only @bokica80 can enter</div>
+    <label class="ilabel" style="display:block;font-size:0.75rem;margin-bottom:8px;">Hive Username</label>
+    <div class="iwrap">
+      <input class="inp" type="text" id="unameInput" placeholder="bokica80" autocomplete="off"/>
+    </div>
+    <button class="btnp" id="loginBtn" onclick="doLogin()">Login with Keychain</button>
+    <div class="lmsg" id="lmsg"></div>
+  </div>
+</div>
+
+<div id="adminMain">
+  <div class="ptitle">FAUCET ADMIN</div>
+  <div class="psub">BPW Faucet — Weekly Reward Distribution</div>
+
+  <div class="stats">
+    <div class="stat"><div class="slabel">Total Claimers</div><div class="sval blue" id="statTotal">—</div></div>
+    <div class="stat"><div class="slabel">Total Claims</div><div class="sval gold" id="statClaims">—</div></div>
+    <div class="stat"><div class="slabel">Pending Send</div><div class="sval" style="color:var(--red)" id="statPending">—</div></div>
+    <div class="stat"><div class="slabel">Already Sent</div><div class="sval green" id="statSent">—</div></div>
+  </div>
+
+  <div class="sectitle">
+    📋 Claims Data
+    <button class="refbtn" onclick="loadFromLocalStorage()">📁 LOAD FROM LOCAL STORAGE</button>
+    <button class="refbtn" onclick="loadFromBlockchain()">⛓️ SCAN BLOCKCHAIN</button>
+  </div>
+  <div class="twrap">
+    <table class="tbl">
+      <thead>…
+<th>User</th><th>Claims (satoshi)</th><th>Status</th><th>Action</th></tr>
+      </thead>
+      <tbody id="tblBody"><tr><td colspan="4" class="empty">Click a button above to load claims...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+var ADMIN = 'bokica80';
+var SENT_KEY = 'bpw_faucet_sent';
+var DELETED_KEY = 'bpw_faucet_deleted';
+var sentSet = new Set(JSON.parse(localStorage.getItem(SENT_KEY) || '[]'));
+var deletedSet = new Set(JSON.parse(localStorage.getItem(DELETED_KEY) || '[]'));
+var claimers = [];
+
+window.onload = function() {
+  var saved = sessionStorage.getItem('bpw_faucet_admin');
+  if (saved === ADMIN) {
+    showAdmin();
+  }
+};
+
+function showMsg(msg, type) {
+  var el = document.getElementById('lmsg');
+  el.textContent = msg;
+  el.className = 'lmsg ' + type;
+}
+
+function doLogin() {
+  var uname = document.getElementById('unameInput').value.trim().toLowerCase();
+  if (!uname) { showMsg('Enter your username.', 'err'); return; }
+  if (uname !== ADMIN) { showMsg('Access denied.', 'err'); return; }
+  if (typeof window.hive_keychain === 'undefined') { showMsg('Hive Keychain not detected.', 'err'); return; }
+  var btn = document.getElementById('loginBtn');
+  btn.disabled = true; btn.textContent = 'Connecting...';
+  showMsg('Waiting for Keychain...', 'info');
+  window.hive_keychain.requestSignBuffer(uname, 'BPW Faucet Admin ' + Date.now(), 'Posting', function(res) {
+    btn.disabled = false; btn.textContent = 'Login with Keychain';
+    if (res.success) {
+      sessionStorage.setItem('bpw_faucet_admin', uname);
+      showAdmin();
+    } else {
+      showMsg(res.message || 'Login failed.', 'err');
+    }
+  });
+}
+
+function doLogout() {
+  sessionStorage.removeItem('bpw_faucet_admin');
+  document.getElementById('adminMain').style.display = 'none';
+  document.getElementById('loginOverlay').style.display = 'flex';
+  document.getElementById('unameInput').value = '';
+}
+
+function showAdmin() {
+  document.getElementById('loginOverlay').style.display = 'none';
+  document.getElementById('adminMain').style.display = 'block';
+}
+
+function loadFromLocalStorage() {
+  var tbody = document.getElementById('tblBody');
+  tbody.innerHTML = '<tr><td colspan="4" class="loading">Loading from localStorage......</td></tr>';
+  
+  try {
+    var allClaims = {};
+    for (var i = 0; i < localStorage.length; i++) {
+      var key = localStorage.key(i);
+      if (key && key.indexOf('bpw_total_') === 0) {
+        var username = key.replace('bpw_total_', '');
+        var count = parseInt(localStorage.getItem(key)) || 0;
+        if (count > 0 && !deletedSet.has(username)) {
+          allClaims[username] = count;
+        }
+      }
+    }
+    
+    var globalLB = JSON.parse(localStorage.getItem('bpw_leaderboard_global') || '{}');
+    for (var user in globalLB) {
+      if (globalLB.hasOwnProperty(user) && !deletedSet.has(user)) {
+        if (!allClaims[user] || allClaims[user] < globalLB[user]) {
+          allClaims[user] = globalLB[user];
+        }
+      }
+    }
+    
+    claimers = [];
+    for (var u in allClaims) {
+      if (allClaims.hasOwnProperty(u)) {
+        claimers.push({ user: u, count: allClaims[u] });
+      }
+    }
+    claimers.sort(function(a, b) { return b.count - a.count; });
+    
+    if (claimers.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" class="empty">No claims found in localStorage.</td></tr>';
+    } else {
+      renderTable();
+    }
+    updateStats();
+  } catch(e) {
+    tbody.innerHTML = '<tr><td colspan="4" class="empty" style="color:var(--red);">Error: ' + e.message + '</td></tr>';
+  }
+}
+
+async function loadFromBlockchain() {
+  var tbody = document.getElementById('tblBody');
+  tbody.innerHTML = '<tr><td colspan="4" class="loading">Scanning blockchain...</td></tr>';
+  
+  try {
+    var propsRes = await fetch('https://api.hive.blog', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jsonrpc: '2.0', method: 'condenser_api.get_dynamic_global_properties', params: [], id: 1 })
+    });
+    var propsData = await propsRes.json();
+    var currentBlock = propsData.result.head_block_number;
+    var startBlock = Math.max(1, currentBlock - 300);
+    
+    var claimMap = {};
+    
+    for (var blockNum = startBlock; blockNum <= currentBlock; blockNum++) {
+      try {
+        var blockRes = await fetch('https://api.hive.blog', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ jsonrpc: '2.0', method: 'condenser_api.get_block', params: [blockNum], id: 1 })
+        });
+        var blockData = await blockRes.json();
+        
+        if (blockData.result && blockData.result.transactions) {
+          for (var t = 0; t < blockData.result.transactions.length; t++) {
+            var tx = blockData.result.transactions[t];
+            if (tx.operations) {
+              for (var o = 0; o < tx.operations.length; o++) {
+                var op = tx.operations[o];
+                if (op[0] === 'custom_json' && op[1] && op[1].id === 'bpw-faucet') {
+                  try {
+                    var jsonData = JSON.parse(op[1].json);
+                    if (jsonData.action === 'claim' && jsonData.player) {
+                      var player = jsonData.player.toLowerCase();
+                      if (!claimMap[player]) claimMap[player] = 0;
+                      claimMap[player]++;
+                    }
+                  } catch(e) {}
+                }
+              }
+            }
+          }
+        }
+      } catch(e) {}
+    }
+    
+    claimers = [];
+    for (var playerName in claimMap) {
+      if (claimMap.hasOwnProperty(playerName) && !deletedSet.has(playerName)) {
+        claimers.push({ user: playerName, count: claimMap[playerName] });
+      }
+    }
+    claimers.sort(function(a, b) { return b.count - a.count; });
+    
+    if (claimers.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" class="empty">No bpw-faucet claims found in last 300 blocks.</td></tr>';
+    } else {
+      renderTable();
+    }
+    updateStats();
+  } catch(e) {
+    tbody.innerHTML = '<tr><td colspan="4" class="empty" style="color:var(--red);">Error: ' + e.message + '</td></tr>';
+  }
+}
+
+function renderTable() {
+  var tbody = document.getElementById('tblBody');
+  if (!claimers || claimers.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" class="empty">No claims found.</td></tr>';
+    return;
+  }
+  
+  var html = '';
+  for (var n = 0; n < claimers.length; n++) {
+    var c = claimers[n];
+    var done = sentSet.has(c.user);
+    var sid = c.user.replace(/[^a-z0-9]/gi, '_');
+    var safeUser = c.user.replace(/'/g, "\\'");
+    
+    html += '<tr>';
+    html += '<td><div class="uname">@' + escapeHtml(c.user) + '</div></td>';
+    html += '<td><div class="aval">' + c.count + ' satoshi BPW</div></td>';
+    html += '<td><span class="bdg ' + (done ? 'sent' : 'pending') + '">' + (done ? '✓ SENT' : 'PENDING') + '</span></td>';
+    html += '<td>';
+    if (done) {
+      html += '<span style="color:var(--green);">✓ Done</span>';
+    } else {
+      html += '<button class="sendbtn" id="sbtn-' + sid + '" onclick="sendBPW(\'' + safeUser + '\')">SEND BPW</button>';
+    }
+    html += '<button class="delbtn" onclick="deleteRow(\'' + safeUser + '\')">🗑</button>';
+    html += '</td></tr>';
+  }
+  tbody.innerHTML = html;
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/[&<>]/g, function(m) {
+    if (m === '&') return '&amp;';
+    if (m === '<') return '&lt;';
+    if (m === '>') return '&gt;';
+    return m;
+  });
+}
+
+function updateStats() {
+  var total = claimers.length;
+  var totalClaims = 0;
+  for (var i = 0; i < claimers.length; i++) {
+    totalClaims += claimers[i].count;
+  }
+  var sent = 0;
+  for (var j = 0; j < claimers.length; j++) {
+    if (sentSet.has(claimers[j].user)) sent++;
+  }
+  document.getElementById('statTotal').innerHTML = total;
+  document.getElementById('statClaims').innerHTML = totalClaims;
+  document.getElementById('statPending').innerHTML = total - sent;
+  document.getElementById('statSent').innerHTML = sent;
+}
+
+function sendBPW(username) {
+  var userData = null;
+  for (var i = 0; i < claimers.length; i++) {
+    if (claimers[i].user === username) {
+      userData = claimers[i];
+      break;
+    }
+  }
+  if (!userData) { alert('User not found'); return; }
+  if (typeof window.hive_keychain === 'undefined') { alert('Keychain not detected!'); return; }
+  
+  var sid = username.replace(/[^a-z0-9]/gi, '_');
+  var btn = document.getElementById('sbtn-' + sid);
+  if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
+  
+  var amount = (userData.count * 0.00000001).toFixed(8);
+  var jsonPayload = JSON.stringify({
+    contractName: 'tokens',
+    contractAction: 'transfer',
+    contractPayload: {
+      symbol: 'BPW',
+      to: username,
+      quantity: amount,
+      memo: 'BPW Faucet Weekly Reward — ' + userData.count + ' claims'
+    }
+  });
+  
+  window.hive_keychain.requestCustomJson(ADMIN, 'ssc-mainnet-hive', 'Active', jsonPayload, 'Send BPW to @' + username, function(res) {
+    if (res.success) {
+      sentSet.add(username);
+      localStorage.setItem(SENT_KEY, JSON.stringify(Array.from(sentSet)));
+      renderTable();
+      updateStats();
+    } else {
+      if (btn) { btn.disabled = false; btn.textContent = 'SEND BPW'; }
+      alert('Failed: ' + (res.message || 'Unknown error'));
+    }
+  });
+}
+
+function deleteRow(username) {
+  if (!confirm('Permanently delete @' + username + '?')) return;
+  deletedSet.add(username);
+  localStorage.setItem(DELETED_KEY, JSON.stringify(Array.from(deletedSet)));
+  
+  var newClaimers = [];
+  for (var i = 0; i < claimers.length; i++) {
+    if (claimers[i].user !== username) {
+      newClaimers.push(claimers[i]);
+    }
+  }
+  claimers = newClaimers;
+  
+  if (sentSet.has(username)) {
+    sentSet.delete(username);
+    localStorage.setItem(SENT_KEY, JSON.stringify(Array.from(sentSet)));
+  }
+  renderTable();
+  updateStats();
+}
+</script>
+</body>
+</html>
